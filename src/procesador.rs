@@ -21,7 +21,7 @@ pub fn tokenizar(cad: &str) -> Result<Vec<Token>, ErrExpr> {
         Buscando::Entero => vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(
             token.parse().unwrap(),
         )))),
-        Buscando::Flotante => vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(
+        Buscando::Flotante => vec.push(Token::Literal(Literal::base(LiteralTipo::Flotante(
             token.parse().unwrap(),
         )))),
         _ => return Err(ErrExpr::MalToken),
