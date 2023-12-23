@@ -94,7 +94,7 @@ fn clasificar_char(
                 ' ' => return Ok(()),
                 '+' => Binario::base(BinarioTipo::Incremento),
                 '-' => Binario::base(BinarioTipo::Diferencia),
-                '*' => Binario::base(BinarioTipo::Producto),
+                '*' | '·' => Binario::base(BinarioTipo::Producto),
                 '/' => Binario::base(BinarioTipo::Cociente),
                 '%' => Binario::base(BinarioTipo::Resto),
                 _ => return Err(ErrExpr::MalToken),

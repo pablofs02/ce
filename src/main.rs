@@ -1,4 +1,4 @@
-use calexp::evaluar;
+use ce::evaluar;
 
 fn main() {
     let argos: Vec<String> = std::env::args().collect();

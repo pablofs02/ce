@@ -1,5 +1,5 @@
 [package]
-name = "calexp"
+name = "ce"
 version = "0.1.0"
 authors = ["Pablo Fernández Serrano <pablofs02@tutanota.com>"]
 edition = "2021"
@@ -9,5 +9,3 @@ repository = "https://github.com/pablofs02/calexp/"
 license = "GPL-3.0-or-later"
 keywords = ["minimalista", "rust", "libre", "linux"]
 categories = []
-
-[dependencies]
