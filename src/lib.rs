@@ -6,6 +6,7 @@ use procesador::{tokenizar, calcular};
 
 pub fn evaluar(cad: &str) -> Result<String, ErrExpr> {
     let toks = tokenizar(cad)?;
+    println!("{:?}", toks);
     let res = calcular(toks)?;
     Ok(res)
 }
@@ -51,11 +52,11 @@ mod insertar {
 
     #[test]
     fn orden() {
-        assert_eq!(evaluar("3 - 2 * 3").unwrap(), "3".to_owned());
+        assert_eq!(evaluar("3 - 2 * 3").unwrap(), "-3".to_owned());
     }
 
     #[test]
     fn varios_con_orden() {
-        assert_eq!(evaluar("6 * 0.3 + 5.5 * 0.4").unwrap(), "4.0".to_owned());
+        assert_eq!(evaluar("1 * 2 + 3 * 4").unwrap(), "14".to_owned());
     }
 }

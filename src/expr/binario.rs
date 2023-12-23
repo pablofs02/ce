@@ -1,6 +1,6 @@
 use crate::ErrExpr;
 
-use super::{binario_preferente, literal::Literal, token::Token};
+use super::{literal::Literal, token::Token, debe_heredar};
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone)]
@@ -50,14 +50,29 @@ impl Binario {
 
     pub fn heredar(&mut self, token: Token) -> Result<(), ErrExpr> {
         if let Some(ref mut valor) = self.der {
-            if binario_preferente(valor, &token) {
-                // QUEHACER
-            } else {
+            if debe_heredar(valor, &token) {
                 valor.heredar(token)?;
+            } else {
+                self.intercambiar(token)?;
             }
         } else {
             self.der = Some(Box::new(token));
         }
+        Ok(())
+    }
+
+    fn intercambiar(&mut self, mut token: Token) -> Result<(), ErrExpr> {
+        let ant = self.der.take().unwrap();
+        match token {
+            Token::Binario(ref mut bin) => {
+                bin.izq = Some(ant);
+            }
+            Token::Unario(ref mut un) => {
+                un.hijo = Some(ant);
+            }
+            Token::Literal(_) => return Err(ErrExpr::MalToken),
+        }
+        self.der = Some(Box::new(token));
         Ok(())
     }
 }

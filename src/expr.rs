@@ -30,10 +30,10 @@ impl Expr {
 
     pub fn insertar(&mut self, token: Token) -> Result<(), ErrExpr> {
         if let Some(ref mut valor) = self.base {
-            if binario_preferente(valor, &token) {
-                self.intercambiar(token)?;
-            } else {
+            if debe_heredar(valor, &token) {
                 valor.heredar(token)?;
+            } else {
+                self.intercambiar(token)?;
             }
         } else {
             self.base = Some(token);
@@ -71,13 +71,19 @@ impl Expr {
     }
 }
 
-pub fn binario_preferente(pref: &mut Token, token: &Token) -> bool {
-    if let Token::Binario(b1) = pref {
-        if let Token::Binario(b2) = token {
-            if *b1 > *b2 {
-                return true;
+pub fn debe_heredar(pref: &mut Token, token: &Token) -> bool {
+    match (pref, token) {
+        (Token::Literal(_), Token::Binario(_)) => false,
+        (Token::Unario(_), Token::Binario(_)) => false,
+        (Token::Binario(b1), Token::Binario(b2)) => {
+            println!("BIN:{b1:?} {b2:?}");
+            println!("BIN:{}", *b1 > *b2);
+            if *b1 >= *b2 {
+                return false;
             }
+            true
         }
+        (_, Token::Literal(_)) => true,
+        (_, Token::Unario(_)) => true,
     }
-    false
 }
