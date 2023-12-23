@@ -1,4 +1,7 @@
-use crate::{token::{Token, Literal, Unario, Binario}, ErrExpr, expr::Expr};
+use crate::{
+    expr::{Literal, LiteralTipo, Token, Expr, UnarioTipo, Unario, Binario, BinarioTipo},
+    ErrExpr,
+};
 
 enum Buscando {
     LiteralOUnario,
@@ -15,8 +18,12 @@ pub fn tokenizar(cad: &str) -> Result<Vec<Token>, ErrExpr> {
         clasificar_char(c, &mut estado, &mut vec, &mut token)?;
     }
     match estado {
-        Buscando::Entero => vec.push(Token::Literal(Literal::Entero(token.parse().unwrap()))),
-        Buscando::Flotante => vec.push(Token::Literal(Literal::Flotante(token.parse().unwrap()))),
+        Buscando::Entero => vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(
+            token.parse().unwrap(),
+        )))),
+        Buscando::Flotante => vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(
+            token.parse().unwrap(),
+        )))),
         _ => return Err(ErrExpr::MalToken),
     }
     Ok(vec)
@@ -25,8 +32,9 @@ pub fn tokenizar(cad: &str) -> Result<Vec<Token>, ErrExpr> {
 pub fn calcular(vec: Vec<Token>) -> Result<String, ErrExpr> {
     let mut val = Expr::base();
     for elem in vec {
-        val.insertar(elem);
+        val.insertar(elem)?;
     }
+    println!("{:?}", val);
     val.operar()
 }
 
@@ -46,8 +54,8 @@ fn clasificar_char(
                 token.push('.');
                 *estado = Buscando::Flotante;
             }
-            '+' => vec.push(Token::Unario(Unario::Positivo)),
-            '-' => vec.push(Token::Unario(Unario::Negativo)),
+            '+' => vec.push(Token::Unario(Unario::base(UnarioTipo::Positivo))),
+            '-' => vec.push(Token::Unario(Unario::base(UnarioTipo::Negativo))),
             ' ' => return Ok(()),
             _ => return Err(ErrExpr::MalToken),
         },
@@ -61,7 +69,7 @@ fn clasificar_char(
                 *estado = Buscando::Flotante;
             }
             _ => {
-                vec.push(Token::Literal(Literal::Entero(token.parse().unwrap())));
+                vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(token.parse().unwrap()))));
                 *token = String::new();
                 *estado = Buscando::Binario;
                 clasificar_char(c, estado, vec, token)?;
@@ -70,10 +78,9 @@ fn clasificar_char(
         Buscando::Flotante => match c {
             '0'..='9' => {
                 token.push(c);
-                *estado = Buscando::Entero;
             }
             _ => {
-                vec.push(Token::Literal(Literal::Flotante(token.parse().unwrap())));
+                vec.push(Token::Literal(Literal::base(LiteralTipo::Flotante(token.parse().unwrap()))));
                 *token = String::new();
                 *estado = Buscando::Binario;
                 clasificar_char(c, estado, vec, token)?;
@@ -82,11 +89,11 @@ fn clasificar_char(
         Buscando::Binario => {
             let bin = match c {
                 ' ' => return Ok(()),
-                '+' => Binario::Suma,
-                '-' => Binario::Resta,
-                '*' => Binario::Producto,
-                '/' => Binario::Cociente,
-                '%' => Binario::Resto,
+                '+' => Binario::base(BinarioTipo::Incremento),
+                '-' => Binario::base(BinarioTipo::Diferencia),
+                '*' => Binario::base(BinarioTipo::Producto),
+                '/' => Binario::base(BinarioTipo::Cociente),
+                '%' => Binario::base(BinarioTipo::Resto),
                 _ => return Err(ErrExpr::MalToken),
             };
             vec.push(Token::Binario(bin));

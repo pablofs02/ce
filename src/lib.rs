@@ -1,6 +1,5 @@
 mod expr;
 mod procesador;
-mod token;
 
 pub use expr::ErrExpr;
 use procesador::{tokenizar, calcular};
@@ -12,7 +11,7 @@ pub fn evaluar(cad: &str) -> Result<String, ErrExpr> {
 }
 
 #[cfg(test)]
-mod tests {
+mod insertar {
     use crate::evaluar;
 
     #[test]
@@ -53,5 +52,10 @@ mod tests {
     #[test]
     fn orden() {
         assert_eq!(evaluar("3 - 2 * 3").unwrap(), "3".to_owned());
+    }
+
+    #[test]
+    fn varios_con_orden() {
+        assert_eq!(evaluar("6 * 0.3 + 5.5 * 0.4").unwrap(), "4.0".to_owned());
     }
 }
