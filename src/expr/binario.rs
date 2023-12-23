@@ -1,6 +1,6 @@
 use crate::ErrExpr;
 
-use super::{literal::Literal, token::Token, debe_heredar};
+use super::{debe_heredar, literal::Literal, token::Token};
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,5 @@
 use crate::{
-    expr::{Literal, LiteralTipo, Token, Expr, UnarioTipo, Unario, Binario, BinarioTipo},
+    expr::{Binario, BinarioTipo, Expr, Literal, LiteralTipo, Token, Unario, UnarioTipo},
     ErrExpr,
 };
 
@@ -34,7 +34,6 @@ pub fn calcular(vec: Vec<Token>) -> Result<String, ErrExpr> {
     for elem in vec {
         val.insertar(elem)?;
     }
-    println!("{:?}", val);
     val.operar()
 }
 
@@ -69,7 +68,9 @@ fn clasificar_char(
                 *estado = Buscando::Flotante;
             }
             _ => {
-                vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(token.parse().unwrap()))));
+                vec.push(Token::Literal(Literal::base(LiteralTipo::Entero(
+                    token.parse().unwrap(),
+                ))));
                 *token = String::new();
                 *estado = Buscando::Binario;
                 clasificar_char(c, estado, vec, token)?;
@@ -80,7 +81,9 @@ fn clasificar_char(
                 token.push(c);
             }
             _ => {
-                vec.push(Token::Literal(Literal::base(LiteralTipo::Flotante(token.parse().unwrap()))));
+                vec.push(Token::Literal(Literal::base(LiteralTipo::Flotante(
+                    token.parse().unwrap(),
+                ))));
                 *token = String::new();
                 *estado = Buscando::Binario;
                 clasificar_char(c, estado, vec, token)?;

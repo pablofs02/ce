@@ -75,14 +75,8 @@ pub fn debe_heredar(pref: &mut Token, token: &Token) -> bool {
     match (pref, token) {
         (Token::Literal(_), Token::Binario(_)) => false,
         (Token::Unario(_), Token::Binario(_)) => false,
-        (Token::Binario(b1), Token::Binario(b2)) => {
-            println!("BIN:{b1:?} {b2:?}");
-            println!("BIN:{}", *b1 > *b2);
-            if *b1 >= *b2 {
-                return false;
-            }
-            true
-        }
+        (Token::Binario(b1), Token::Binario(b2)) if *b1 >= *b2 => false,
+        (Token::Binario(_), Token::Binario(_)) => true,
         (_, Token::Literal(_)) => true,
         (_, Token::Unario(_)) => true,
     }

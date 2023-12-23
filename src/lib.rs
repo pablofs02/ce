@@ -6,7 +6,6 @@ use procesador::{tokenizar, calcular};
 
 pub fn evaluar(cad: &str) -> Result<String, ErrExpr> {
     let toks = tokenizar(cad)?;
-    println!("{:?}", toks);
     let res = calcular(toks)?;
     Ok(res)
 }
