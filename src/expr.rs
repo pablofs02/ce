@@ -12,8 +12,10 @@ pub use self::{
 
 #[derive(Debug)]
 pub enum ErrExpr {
-    MalToken,
-    SinSuficientesHijos,
+    LiteralComoPadre,
+    BinarioInvalido,
+    SinLiteral,
+    MalTokenFinal,
     NoHayValor,
     DivisorCero,
 }
@@ -41,15 +43,9 @@ impl Expr {
         Ok(())
     }
 
-    pub fn operar(&self) -> Result<String, ErrExpr> {
+    pub fn operar(&self) -> Result<Literal, ErrExpr> {
         if let Some(valor) = &self.base {
-            match valor.operar() {
-                Ok(lit) => match lit.valor {
-                    LiteralTipo::Entero(n) => Ok(n.to_string()),
-                    LiteralTipo::Flotante(f) => Ok(f.to_string()),
-                },
-                Err(err) => Err(err),
-            }
+            valor.operar()
         } else {
             Err(ErrExpr::NoHayValor)
         }
@@ -64,7 +60,7 @@ impl Expr {
             Token::Unario(ref mut un) => {
                 un.hijo = Some(Box::new(ant));
             }
-            Token::Literal(_) => return Err(ErrExpr::MalToken),
+            Token::Literal(_) => return Err(ErrExpr::LiteralComoPadre),
         }
         self.base = Some(token);
         Ok(())

@@ -70,7 +70,7 @@ impl Binario {
             Token::Unario(ref mut un) => {
                 un.hijo = Some(ant);
             }
-            Token::Literal(_) => return Err(ErrExpr::MalToken),
+            Token::Literal(_) => return Err(ErrExpr::LiteralComoPadre),
         }
         self.der = Some(Box::new(token));
         Ok(())

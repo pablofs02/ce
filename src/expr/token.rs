@@ -23,7 +23,7 @@ impl Token {
 
     pub fn heredar(&mut self, token: Token) -> Result<(), ErrExpr> {
         match self {
-            Token::Literal(_) => return Err(ErrExpr::MalToken),
+            Token::Literal(_) => return Err(ErrExpr::LiteralComoPadre),
             Token::Unario(ref mut u) => u.heredar(token)?,
             Token::Binario(ref mut b) => b.heredar(token)?,
         }

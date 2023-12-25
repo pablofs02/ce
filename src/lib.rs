@@ -2,13 +2,7 @@ mod expr;
 mod procesador;
 
 pub use expr::ErrExpr;
-use procesador::{tokenizar, calcular};
-
-pub fn evaluar(cad: &str) -> Result<String, ErrExpr> {
-    let toks = tokenizar(cad)?;
-    let res = calcular(toks)?;
-    Ok(res)
-}
+pub use procesador::evaluar;
 
 #[cfg(test)]
 mod insertar {
