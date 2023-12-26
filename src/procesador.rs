@@ -1,7 +1,12 @@
-use crate::{
-    expr::{Binario, BinarioTipo, Expr, Literal, LiteralTipo, Token, Unario, UnarioTipo},
-    ErrExpr,
-};
+use crate::{expr::*, ErrExpr};
+
+struct Procesador {
+    estado: Buscando,
+    token: String,
+    vec_tok: Vec<Token>,
+    vec_sub: Vec<String>,
+    binario: bool,
+}
 
 enum Buscando {
     LiteralOUnario,
@@ -20,34 +25,49 @@ pub fn evaluar(cad: &str) -> Result<String, ErrExpr> {
 }
 
 fn tokenizar(cad: &str) -> Result<Vec<Token>, ErrExpr> {
-    let mut estado = Buscando::LiteralOUnario;
-    let mut token = String::new();
-    let mut vec_tok = vec![];
-    let mut vec_sub = vec![];
+    let mut procesador = Procesador {
+        estado: Buscando::LiteralOUnario,
+        token: String::new(),
+        vec_tok: vec![],
+        vec_sub: vec![],
+        binario: false,
+    };
     for c in cad.chars() {
-        clasificar_char(c, &mut estado, &mut vec_tok, &mut vec_sub, &mut token)?;
+        clasificar_char(c, &mut procesador)?;
     }
-    match estado {
-        _ if !vec_tok.is_empty() && !token.is_empty() => {
-            if token.contains('.') {
-                vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Flotante(
-                    token.parse().unwrap(),
-                ))))
+    match procesador.estado {
+        _ if !procesador.vec_tok.is_empty() && !procesador.token.is_empty() => {
+            if procesador.token.contains('.') {
+                procesador
+                    .vec_tok
+                    .push(Token::Literal(Literal::base(LiteralTipo::Flotante(
+                        procesador.token.parse().unwrap(),
+                    ))))
             } else {
-                vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Entero(
-                    token.parse().unwrap(),
-                ))))
+                procesador
+                    .vec_tok
+                    .push(Token::Literal(Literal::base(LiteralTipo::Entero(
+                        procesador.token.parse().unwrap(),
+                    ))))
             }
         }
-        Buscando::Entero => vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Entero(
-            token.parse().unwrap(),
-        )))),
-        Buscando::Flotante => vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Flotante(
-            token.parse().unwrap(),
-        )))),
+        Buscando::Entero => {
+            procesador
+                .vec_tok
+                .push(Token::Literal(Literal::base(LiteralTipo::Entero(
+                    procesador.token.parse().unwrap(),
+                ))))
+        }
+        Buscando::Flotante => {
+            procesador
+                .vec_tok
+                .push(Token::Literal(Literal::base(LiteralTipo::Flotante(
+                    procesador.token.parse().unwrap(),
+                ))))
+        }
         _ => (),
     }
-    Ok(vec_tok)
+    Ok(procesador.vec_tok)
 }
 
 fn calcular(vec: Vec<Token>) -> Result<Literal, ErrExpr> {
@@ -58,78 +78,92 @@ fn calcular(vec: Vec<Token>) -> Result<Literal, ErrExpr> {
     val.operar()
 }
 
-fn clasificar_char(
-    c: char,
-    estado: &mut Buscando,
-    vec_tok: &mut Vec<Token>,
-    vec_sub: &mut Vec<String>,
-    token: &mut String,
-) -> Result<(), ErrExpr> {
-    if !vec_sub.is_empty() {
+fn clasificar_char(c: char, proc: &mut Procesador) -> Result<(), ErrExpr> {
+    if !proc.vec_sub.is_empty() {
         match c {
             ')' => {
-                *estado = Buscando::Binario;
-                let sub = vec_sub.pop().unwrap();
-                if vec_sub.is_empty() {
-                    vec_tok.push(Token::Literal(calcular(tokenizar(sub.as_str())?)?));
+                proc.estado = Buscando::Binario;
+                let sub = proc.vec_sub.pop().unwrap();
+                if proc.vec_sub.is_empty() {
+                    proc.vec_tok
+                        .push(Token::Literal(calcular(tokenizar(sub.as_str())?)?));
                     return Ok(());
                 }
-                vec_sub
+                proc.vec_sub
                     .last_mut()
                     .unwrap()
                     .push_str(&evaluar(&sub.as_str())?);
                 return Ok(());
             }
-            '(' => vec_sub.push(String::new()),
-            _ => vec_sub.last_mut().unwrap().push(c),
+            '(' => {
+                if !proc.binario {
+                    proc.vec_sub.last_mut().unwrap().push('*')
+                }
+                proc.vec_sub.push(String::new())
+            }
+            '+' | '-' | '*' | '·' | '/' | '%' => {
+                proc.binario = true;
+                proc.vec_sub.last_mut().unwrap().push(c)
+            }
+            ' ' => proc.vec_sub.last_mut().unwrap().push(c),
+            _ => {
+                proc.binario = false;
+                proc.vec_sub.last_mut().unwrap().push(c)
+            }
         }
         return Ok(());
     }
-    match estado {
+    match proc.estado {
         Buscando::LiteralOUnario => match c {
             '0'..='9' => {
-                token.push(c);
-                *estado = Buscando::Entero;
+                proc.token.push(c);
+                proc.estado = Buscando::Entero;
             }
             '.' => {
-                token.push('.');
-                *estado = Buscando::Flotante;
+                proc.token.push('.');
+                proc.estado = Buscando::Flotante;
             }
-            '+' => vec_tok.push(Token::Unario(Unario::base(UnarioTipo::Positivo))),
-            '-' => vec_tok.push(Token::Unario(Unario::base(UnarioTipo::Negativo))),
-            '(' => vec_sub.push(String::new()),
+            '+' => proc
+                .vec_tok
+                .push(Token::Unario(Unario::base(UnarioTipo::Positivo))),
+            '-' => proc
+                .vec_tok
+                .push(Token::Unario(Unario::base(UnarioTipo::Negativo))),
+            '(' => proc.vec_sub.push(String::new()),
             ' ' => return Ok(()),
             _ => return Err(ErrExpr::SinLiteral),
         },
         Buscando::Entero => match c {
             '0'..='9' => {
-                token.push(c);
-                *estado = Buscando::Entero;
+                proc.token.push(c);
+                proc.estado = Buscando::Entero;
             }
             '.' | ',' => {
-                token.push('.');
-                *estado = Buscando::Flotante;
+                proc.token.push('.');
+                proc.estado = Buscando::Flotante;
             }
             _ => {
-                vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Entero(
-                    token.parse().unwrap(),
-                ))));
-                *token = String::new();
-                *estado = Buscando::Binario;
-                clasificar_char(c, estado, vec_tok, vec_sub, token)?;
+                proc.vec_tok
+                    .push(Token::Literal(Literal::base(LiteralTipo::Entero(
+                        proc.token.parse().unwrap(),
+                    ))));
+                proc.token = String::new();
+                proc.estado = Buscando::Binario;
+                clasificar_char(c, proc)?;
             }
         },
         Buscando::Flotante => match c {
             '0'..='9' => {
-                token.push(c);
+                proc.token.push(c);
             }
             _ => {
-                vec_tok.push(Token::Literal(Literal::base(LiteralTipo::Flotante(
-                    token.parse().unwrap(),
-                ))));
-                *token = String::new();
-                *estado = Buscando::Binario;
-                clasificar_char(c, estado, vec_tok, vec_sub, token)?;
+                proc.vec_tok
+                    .push(Token::Literal(Literal::base(LiteralTipo::Flotante(
+                        proc.token.parse().unwrap(),
+                    ))));
+                proc.token = String::new();
+                proc.estado = Buscando::Binario;
+                clasificar_char(c, proc)?;
             }
         },
         Buscando::Binario => {
@@ -141,13 +175,13 @@ fn clasificar_char(
                 '/' => Binario::base(BinarioTipo::Cociente),
                 '%' => Binario::base(BinarioTipo::Resto),
                 '(' => {
-                    vec_sub.push(String::new());
+                    proc.vec_sub.push(String::new());
                     Binario::base(BinarioTipo::Producto)
                 }
                 _ => return Err(ErrExpr::BinarioInvalido),
             };
-            vec_tok.push(Token::Binario(bin));
-            *estado = Buscando::LiteralOUnario;
+            proc.vec_tok.push(Token::Binario(bin));
+            proc.estado = Buscando::LiteralOUnario;
         }
     }
     Ok(())
