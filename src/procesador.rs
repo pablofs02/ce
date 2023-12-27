@@ -6,7 +6,7 @@ struct Procesador {
     token: String,
     vec_tok: Vec<Token>,
     vec_sub: Vec<String>,
-    binario: bool,
+    binario_necesario: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,7 +32,7 @@ fn tokenizar(cad: &str) -> Result<Vec<Token>, ErrExpr> {
         token: String::new(),
         vec_tok: vec![],
         vec_sub: vec![],
-        binario: false,
+        binario_necesario: false,
     };
     for c in cad.chars() {
         clasificar_char(c, &mut procesador)?;
@@ -98,18 +98,19 @@ fn clasificar_char(c: char, proc: &mut Procesador) -> Result<(), ErrExpr> {
                 return Ok(());
             }
             '(' => {
-                if !proc.binario && proc.estado == Buscando::Binario {
-                    proc.vec_sub.last_mut().unwrap().push('*')
+                if proc.binario_necesario {
+                    proc.vec_sub.last_mut().unwrap().push('*');
+                    proc.binario_necesario = false;
                 }
                 proc.vec_sub.push(String::new())
             }
             '+' | '-' | '*' | '·' | '/' | '%' => {
-                proc.binario = true;
+                proc.binario_necesario = false;
                 proc.vec_sub.last_mut().unwrap().push(c)
             }
             ' ' => proc.vec_sub.last_mut().unwrap().push(c),
             _ => {
-                proc.binario = false;
+                proc.binario_necesario = true;
                 proc.vec_sub.last_mut().unwrap().push(c)
             }
         }
