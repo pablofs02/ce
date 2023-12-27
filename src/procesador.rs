@@ -1,5 +1,6 @@
 use crate::{expr::*, ErrExpr};
 
+#[derive(Debug)]
 struct Procesador {
     estado: Buscando,
     token: String,
@@ -8,6 +9,7 @@ struct Procesador {
     binario: bool,
 }
 
+#[derive(Debug, PartialEq)]
 enum Buscando {
     LiteralOUnario,
     Entero,
@@ -96,7 +98,7 @@ fn clasificar_char(c: char, proc: &mut Procesador) -> Result<(), ErrExpr> {
                 return Ok(());
             }
             '(' => {
-                if !proc.binario {
+                if !proc.binario && proc.estado == Buscando::Binario {
                     proc.vec_sub.last_mut().unwrap().push('*')
                 }
                 proc.vec_sub.push(String::new())
