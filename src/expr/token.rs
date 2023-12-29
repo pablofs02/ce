@@ -14,10 +14,13 @@ impl Token {
         match self {
             Token::Literal(l) => Ok(l.clone()),
             Token::Unario(u) => Ok(u.aplicar(u.hijo.as_ref().unwrap().operar()?)),
-            Token::Binario(b) => b.aplicar(
-                b.izq.as_ref().unwrap().operar()?,
-                b.der.as_ref().unwrap().operar()?,
-            ),
+            Token::Binario(b) => {
+                if let Some(x) = b.der.as_ref() {
+                    b.aplicar(b.izq.as_ref().unwrap().operar()?, x.operar()?)
+                } else {
+                    Err(ErrExpr::SinLiteral)
+                }
+            }
         }
     }
 
